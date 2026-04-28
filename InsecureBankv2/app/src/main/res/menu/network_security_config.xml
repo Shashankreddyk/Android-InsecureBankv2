@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 
+    Configuration for TLS 1.3 support
+    Disables cleartext (HTTP) traffic
+    Enables certificate pinning for your server
+    -->
+    
+    <!-- Domain-specific configuration -->
+    <domain-config cleartextTrafficPermitted="false">
+        <!-- Replace with your actual server domain -->
+        <domain includeSubdomains="true">your-server.com</domain>
+        
+        <!-- Certificate pinning: Pin the server's public key -->
+        <!-- This prevents MITM attacks even if a CA is compromised -->
+        <pin-set expiration="2027-12-31">
+            <!-- 
+            Generate these pins from your server certificate:
+            $ openssl s_client -connect your-server.com:443
+            $ openssl x509 -noout -pubkey < certificate.pem | openssl pkey -pubin -outform DER | openssl dgst -sha256 -binary | openssl enc -base64
+            -->
+            
+            <!-- Primary pin (Production cert) -->
+            <pin digest="SHA-256">sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            
+            <!-- Backup pin (Keep for certificate renewal) -->
+            <pin digest="SHA-256">sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Fallback: Disable cleartext for all domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">.</domain>
+    </domain-config>
+
+    <!-- Trust CA certificates -->
+    <trust-anchors>
+        <!-- System certificates -->
+        <certificates src="system" />
+        
+        <!-- Optional: Add custom CA if needed -->
+        <!-- <certificates src="@raw/my_ca" /> -->
+    </trust-anchors>
+</network-security-config>
